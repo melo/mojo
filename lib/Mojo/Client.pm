@@ -36,16 +36,7 @@ sub connect {
 
     # Non blocking connect
     unless ($connection) {
-        $connection = IO::Socket::INET->new(
-            Proto => 'tcp',
-            Type  => SOCK_STREAM
-        );
-
-        # Non blocking
-        $connection->blocking(0);
-
-        my $address = sockaddr_in($port, scalar inet_aton($host));
-        $connection->connect($address);
+        $connection = $self->_connect($host, $port);
         $tx->{connect_timeout} = time + 5;
 
     }
@@ -68,6 +59,23 @@ sub connect {
       unless $req->headers->user_agent;
 
     return $tx;
+}
+
+sub _connect {
+    my ($self, $host, $port) = @_;
+
+    my $connection = IO::Socket::INET->new(
+        Proto => 'tcp',
+        Type  => SOCK_STREAM
+    );
+
+    # Non blocking
+    $connection->blocking(0);
+
+    my $address = sockaddr_in($port, scalar inet_aton($host));
+    $connection->connect($address);
+
+    return $connection;
 }
 
 sub disconnect {

@@ -343,6 +343,7 @@ sub _spin_network {
             # Content generator ready?
             last if defined $chunk;
         }
+        return 0 unless defined $chunk;
 
         # Write chunk
         my $written = $tx->connection->syswrite($chunk, length $chunk);

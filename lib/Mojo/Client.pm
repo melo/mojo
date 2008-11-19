@@ -243,6 +243,25 @@ sub _spin_prepare_transactions {
     return $done ? 1 : 0;
 }
 
+sub _get_next_chunk {
+    my ($self, $tx) = @_;
+    my $req = $tx->req;
+    my $chunk;
+
+    # Body
+    $chunk = $req->get_body_chunk($tx->{_offset} || 0)
+      if $tx->is_state('write_body');
+
+    # Headers
+    $chunk = $req->get_header_chunk($tx->{_offset} || 0)
+      if $tx->is_state('write_headers');
+
+    # Start line
+    $chunk = $req->get_start_line_chunk($tx->{_offset} || 0)
+      if $tx->is_state('write_start_line');
+
+    return $chunk;
+}
 
 sub spin {
     my ($self, @transactions) = @_;
@@ -319,17 +338,7 @@ sub spin {
             $tx  = $transaction{$name};
             $req = $tx->req;
 
-            # Body
-            $chunk = $req->get_body_chunk($tx->{_offset} || 0)
-              if $tx->is_state('write_body');
-
-            # Headers
-            $chunk = $req->get_header_chunk($tx->{_offset} || 0)
-              if $tx->is_state('write_headers');
-
-            # Start line
-            $chunk = $req->get_start_line_chunk($tx->{_offset} || 0)
-              if $tx->is_state('write_start_line');
+            $chunk = $self->_get_next_chunk($tx);
 
             # Content generator ready?
             last if defined $chunk;

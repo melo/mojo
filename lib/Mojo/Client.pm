@@ -288,8 +288,49 @@ sub _write_chunk {
     return $written;
 }
 
+sub _read_chunk {
+    my ($self, $tx, $read, $chunk) = @_;
+    my $res = $tx->res;
+
+    # Early response, most likely an error
+    $tx->state('read_response')
+      if $tx->is_state(qw/write_start_line write_headers write_body/);
+
+    return 1 if $tx->has_error;
+
+    # Read 100 Continue
+    if ($tx->is_state('read_continue')) {
+        $res->done if $read == 0;
+        $res->parse($chunk);
+
+        # We got a 100 Continue response
+        if ($res->is_done && $res->code == 100) {
+            $tx->res(Mojo::Message::Response->new);
+            $tx->continued(1);
+            $tx->{_continue} = 0;
+        }
+
+        # We got something else
+        elsif ($res->is_done) {
+            $tx->res($res);
+            $tx->continued(0);
+            $tx->done;
+        }
+    }
+
+    # Read response
+    elsif ($tx->is_state('read_response')) {
+        $tx->done if $read == 0;
+        $res->parse($chunk);
+        $tx->done if $res->is_done;
+    }
+
+    return 0;
+}
+
 sub _spin_network {
     my ($self, $transaction, @transactions) = @_;
+    my $done = 1;
 
     # Sort read/write sockets
     my @read_select;
@@ -368,46 +409,15 @@ sub _spin_network {
         my $connection = $read->[rand(@$read)];
         my $name       = $self->_socket_name($connection);
         my $tx         = $transaction->{$name};
-        my $res        = $tx->res;
-
-        # Early response, most likely an error
-        $tx->state('read_response')
-          if $tx->is_state(qw/write_start_line write_headers write_body/);
 
         my $buffer;
         my $read = $connection->sysread($buffer, 1024, 0);
         $tx->error("Can't read from socket: $!") unless defined $read;
-        return 1 if $tx->has_error;
 
-        # Read 100 Continue
-        if ($tx->is_state('read_continue')) {
-            $res->done if $read == 0;
-            $res->parse($buffer);
-
-            # We got a 100 Continue response
-            if ($res->is_done && $res->code == 100) {
-                $tx->res(Mojo::Message::Response->new);
-                $tx->continued(1);
-                $tx->{_continue} = 0;
-            }
-
-            # We got something else
-            elsif ($res->is_done) {
-                $tx->res($res);
-                $tx->continued(0);
-                $tx->done;
-            }
-        }
-
-        # Read response
-        elsif ($tx->is_state('read_response')) {
-            $tx->done if $read == 0;
-            $res->parse($buffer);
-            $tx->done if $res->is_done;
-        }
+        $done += $self->_read_chunk($tx, $read, $buffer);
     }
 
-    return 0;
+    return $done ? 1 : 0;
 }
 
 sub spin {

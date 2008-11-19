@@ -263,6 +263,22 @@ sub _get_next_chunk {
     return $chunk;
 }
 
+sub _check_expired_continue_request {
+    my ($self, @transactions) = @_;
+
+    # Make sure we don't wait longer than 5 seconds for a 100 Continue
+    for my $tx (@transactions) {
+        next unless $tx->{_continue};
+        my $continue = $tx->{_continue};
+        $tx->{_started} ||= time;
+        $continue -= time - $tx->{_started};
+        $continue = 0 if $continue < 0;
+        $tx->{_continue} = $continue;
+    }
+
+    return;
+}
+
 sub _spin_network {
     my ($self, $transaction, @transactions) = @_;
 
@@ -299,15 +315,7 @@ sub _spin_network {
       IO::Select->select($read_select, $write_select, undef,
         $self->select_timeout);
 
-    # Make sure we don't wait longer than 5 seconds for a 100 Continue
-    for my $tx (@transactions) {
-        next unless $tx->{_continue};
-        my $continue = $tx->{_continue};
-        $tx->{_started} ||= time;
-        $continue -= time - $tx->{_started};
-        $continue = 0 if $continue < 0;
-        $tx->{_continue} = $continue;
-    }
+    $self->_check_expired_continue_request(@transactions);
 
     $read  ||= [];
     $write ||= [];

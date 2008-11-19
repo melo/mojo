@@ -279,7 +279,7 @@ sub _check_expired_continue_request {
     return;
 }
 
-sub _read_chunk {
+sub _parse_read_chunk {
     my ($self, $tx, $read, $chunk) = @_;
     my $res = $tx->res;
 
@@ -406,7 +406,7 @@ sub _spin_network {
         my $read = $connection->sysread($buffer, 1024, 0);
         $tx->error("Can't read from socket: $!") unless defined $read;
 
-        $done += $self->_read_chunk($tx, $read, $buffer);
+        $done += $self->_parse_read_chunk($tx, $read, $buffer);
     }
 
     return $done ? 1 : 0;

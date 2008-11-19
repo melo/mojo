@@ -398,7 +398,7 @@ sub spin {
         }
     }
 
-    return $done;
+    return 0;
 }
 
 sub test_connection {

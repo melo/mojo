@@ -164,11 +164,8 @@ sub process_local {
     return $new_tx;
 }
 
-sub spin {
-    my ($self, @transactions) = @_;
-
-    # Name to transaction map for fast lookups
-    my %transaction;
+sub _spin_prepare_transactions {
+    my ($self, $transaction, @transactions) = @_;
 
     # Prepare
     my $done = 0;
@@ -202,7 +199,7 @@ sub spin {
 
         # Map
         my $name = $self->_socket_name($tx->connection);
-        $transaction{$name} = $tx;
+        $transaction->{$name} = $tx;
 
         # Request start line written
         if ($tx->is_state('write_start_line')) {
@@ -242,6 +239,20 @@ sub spin {
             $self->disconnect($tx) if $tx->is_done;
         }
     }
+
+    return $done ? 1 : 0;
+}
+
+
+sub spin {
+    my ($self, @transactions) = @_;
+
+    # Name to transaction map for fast lookups
+    my %transaction;
+
+    # Prepare
+    my $done =
+      $self->_spin_prepare_transactions(\%transaction, @transactions);
     return 1 if $done;
 
     # Sort read/write sockets

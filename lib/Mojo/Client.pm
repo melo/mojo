@@ -164,7 +164,7 @@ sub process_local {
     return $new_tx;
 }
 
-sub _spin_prepare_transactions {
+sub _prepare_transactions {
     my ($self, $transaction, @transactions) = @_;
 
     # Prepare
@@ -419,8 +419,7 @@ sub spin {
     my %transaction;
 
     # Prepare
-    my $done =
-      $self->_spin_prepare_transactions(\%transaction, @transactions);
+    my $done = $self->_prepare_transactions(\%transaction, @transactions);
     return 1 if $done;
 
     return $self->_spin_network(\%transaction, @transactions);

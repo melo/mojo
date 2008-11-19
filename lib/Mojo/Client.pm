@@ -263,16 +263,8 @@ sub _get_next_chunk {
     return $chunk;
 }
 
-sub spin {
-    my ($self, @transactions) = @_;
-
-    # Name to transaction map for fast lookups
-    my %transaction;
-
-    # Prepare
-    my $done =
-      $self->_spin_prepare_transactions(\%transaction, @transactions);
-    return 1 if $done;
+sub _spin_network {
+    my ($self, $transaction, @transactions) = @_;
 
     # Sort read/write sockets
     my @read_select;
@@ -335,7 +327,7 @@ sub spin {
         for my $connection (sort { int(rand(3)) - 1 } @$write) {
 
             my $name = $self->_socket_name($connection);
-            $tx  = $transaction{$name};
+            $tx  = $transaction->{$name};
             $req = $tx->req;
 
             $chunk = $self->_get_next_chunk($tx);
@@ -358,7 +350,7 @@ sub spin {
 
         my $connection = $read->[rand(@$read)];
         my $name       = $self->_socket_name($connection);
-        my $tx         = $transaction{$name};
+        my $tx         = $transaction->{$name};
         my $res        = $tx->res;
 
         # Early response, most likely an error
@@ -399,6 +391,20 @@ sub spin {
     }
 
     return 0;
+}
+
+sub spin {
+    my ($self, @transactions) = @_;
+
+    # Name to transaction map for fast lookups
+    my %transaction;
+
+    # Prepare
+    my $done =
+      $self->_spin_prepare_transactions(\%transaction, @transactions);
+    return 1 if $done;
+
+    return $self->_spin_network(\%transaction, @transactions);
 }
 
 sub test_connection {

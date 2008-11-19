@@ -279,6 +279,15 @@ sub _check_expired_continue_request {
     return;
 }
 
+sub _write_chunk {
+    my ($self, $tx, $chunk) = @_;
+
+    my $written = $tx->connection->syswrite($chunk, length $chunk);
+    $tx->error("Can't write request: $!") unless defined $written;
+
+    return $written;
+}
+
 sub _spin_network {
     my ($self, $transaction, @transactions) = @_;
 
@@ -346,8 +355,7 @@ sub _spin_network {
         return 0 unless defined $chunk;
 
         # Write chunk
-        my $written = $tx->connection->syswrite($chunk, length $chunk);
-        $tx->error("Can't write request: $!") unless defined $written;
+        my $written = $self->_write_chunk($tx, $chunk);
         return 1 if $tx->has_error;
 
         $tx->{_to_write} -= $written;

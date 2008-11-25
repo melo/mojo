@@ -36,7 +36,7 @@ sub connect {
 
     # Non blocking connect
     unless ($connection) {
-        $connection = $self->_connect($host, $port);
+        $connection = $self->_connect($tx, $host, $port);
         $tx->{connect_timeout} = time + 5;
 
     }
@@ -62,7 +62,7 @@ sub connect {
 }
 
 sub _connect {
-    my ($self, $host, $port) = @_;
+    my ($self, $tx, $host, $port) = @_;
 
     my $connection = IO::Socket::INET->new(
         Proto => 'tcp',

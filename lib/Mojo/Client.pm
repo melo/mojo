@@ -184,6 +184,10 @@ sub _prepare_transactions {
                 $tx->error("Can't connect to peer before timeout");
                 $done++;
             }
+            elsif ($tx->is_state('connect_failure')) {
+                $tx->error("Connction failed");
+                $done++;
+            }
             next;
         }
         elsif ($tx->is_state('connect')) {

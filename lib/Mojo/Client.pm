@@ -204,6 +204,7 @@ sub _prepare_transactions {
             # Ready for next state
             $tx->state('write_start_line');
             $tx->{_to_write} = $tx->req->start_line_length;
+            $self->_start_writting($tx);
         }
 
         # Map
@@ -251,6 +252,8 @@ sub _prepare_transactions {
 
     return $done ? 1 : 0;
 }
+
+sub _start_writting {}
 
 sub _get_next_chunk {
     my ($self, $tx) = @_;

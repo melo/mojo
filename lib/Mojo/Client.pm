@@ -325,12 +325,12 @@ sub _parse_read_chunk {
         $tx->done if $res->is_done;
     }
 
-    return $tx->is_finished? 1 : 0;
+    return 0;
 }
 
 sub _spin_network {
     my ($self, $transaction, @transactions) = @_;
-    my $done = 1;
+    my $done = 0;
 
     # Sort read/write sockets
     my @read_select;

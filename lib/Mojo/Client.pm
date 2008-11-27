@@ -320,7 +320,7 @@ sub _parse_read_chunk {
         $tx->done if $res->is_done;
     }
 
-    return 0;
+    return $tx->is_finished? 1 : 0;
 }
 
 sub _spin_network {

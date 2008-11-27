@@ -215,6 +215,7 @@ sub _prepare_transactions {
         if ($tx->is_state('write_start_line')) {
             if ($tx->{_to_write} <= 0) {
                 $tx->state('write_headers');
+                $tx->fix_headers;
                 $tx->{_offset}   = 0;
                 $tx->{_to_write} = $tx->req->header_length;
             }

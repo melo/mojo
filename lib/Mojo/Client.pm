@@ -35,11 +35,14 @@ sub connect {
     $tx->kept_alive(1) if $connection;
 
     # Non blocking connect
-    unless ($connection) {
+    if ($connection) {
+        $self->_reuse_connection($tx, $connection);
+    }
+    else {
         $connection = $self->_connect($tx, $host, $port);
         $tx->{connect_timeout} = time + 5;
-
     }
+    
     $tx->connection($connection);
     $tx->state('connect');
 
@@ -77,6 +80,8 @@ sub _connect {
 
     return $connection;
 }
+
+sub _reuse_connection {}
 
 sub disconnect {
     my ($self, $tx) = @_;

@@ -123,7 +123,7 @@ sub dispatch {
     }
 
     # Render
-    $c->render unless $c->stash->{rendered};
+    $c->render unless $c->skip_renderer;
 
     # No stack, fail
     return 0 unless @$stack;

@@ -13,7 +13,7 @@ use Mojo::Loader;
 __PACKAGE__->attr(
     disallow => (
         chained => 1,
-        default => sub { [qw/new app attr render req res stash/] }
+        default => sub { [qw/new app attr meta render req res stash/] }
     )
 );
 __PACKAGE__->attr(namespace => (chained => 1));
@@ -27,6 +27,10 @@ sub dispatch {
 
     # Shortcut
     return 0 unless $match;
+
+    # No stack, fail
+    my $stack = $match->stack;
+    return 0 unless @$stack;
 
     # Initialize stash with captures
     my %captures = %{$match->captures};
@@ -43,7 +47,6 @@ sub dispatch {
     }
 
     # Walk the stack
-    my $stack = $match->stack;
     for my $field (@$stack) {
 
         # Don't cache errors
@@ -124,9 +127,6 @@ sub dispatch {
 
     # Render
     $c->render unless $c->skip_renderer;
-
-    # No stack, fail
-    return 0 unless @$stack;
 
     # All seems ok
     return 1;

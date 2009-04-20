@@ -4,6 +4,8 @@ This file documents the revision history for Perl extension Mojo.
         - Rewrote MojoX::Renderer, it is not backward compatible and
           templates need to be renamed in the following 3 part format
           "index.html.tt"!
+        - Added full HTTP 1.1 pipelining support to all Mojo layers.
+        - Added layout support to MojoX::Renderer.
         - Made render call optional.
         - Added format support to MojoX::Routes.
         - Added wildcard symbol support to MojoX::Routes and rewrote many
@@ -15,7 +17,15 @@ This file documents the revision history for Perl extension Mojo.
           (Anatoly Sharifulin)
         - Fixed parsing of "0" in Mojo::Path. (charsbar)
         - Fix server tests on win32. (charsbar)
+        - Fixed leading whitespace problem in the request parser. (Acajou)
+        - Fixed broken pipe problem in Mojo::Server::CGI. (vti)
         - Added more diagnostics options to Mojo::HelloWorld. (uwe)
+        - Fixed empty cookie parsing. (vti)
+        - Fixed a case where child processes migth hang in
+          Mojo::Server::Daemon::Prefork. (gbarr)
+        - Fixed a bug in MojoX::Dispatcher::Routes where the renderer would
+          be called with an empty stack. (melo)
+        - Fixed a escaping problem in Mojo::Parameters. (vti)
         - Updated Mojo::URL to be more template friendly.
 
 0.9002  2009-02-16 00:00:00

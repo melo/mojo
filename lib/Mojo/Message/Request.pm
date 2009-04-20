@@ -226,8 +226,14 @@ sub _parse_env {
 sub _parse_start_line {
     my $self = shift;
 
-    # We have a full request line
     my $line = $self->buffer->get_line;
+
+    # Ignore any leading empty lines
+    while ((defined $line) && ($line =~ m/^\s*$/)) {
+        $line = $self->buffer->get_line;
+    }
+
+    # We have a (hopefully) full request line
     if (defined $line) {
         if ($line =~ /
             ^\s*                                                          # Start
@@ -252,6 +258,10 @@ sub _parse_start_line {
                 $self->major_version(0);
                 $self->minor_version(9);
                 $self->done;
+
+                # HTTP 0.9 has no headers or body and does not support
+                # pipelining
+                $self->buffer->empty;
             }
         }
         else { $self->error('Parser error: Invalid request line') }

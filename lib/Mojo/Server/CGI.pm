@@ -55,7 +55,9 @@ sub run {
             last unless length $chunk;
 
             # Start line
+            return unless STDOUT->opened;
             my $written = STDOUT->syswrite($chunk);
+            return unless defined $written;
             $offset += $written;
         }
     }
@@ -78,7 +80,9 @@ sub run {
         last unless length $chunk;
 
         # Headers
+        return unless STDOUT->opened;
         my $written = STDOUT->syswrite($chunk);
+        return unless defined $written;
         $offset += $written;
     }
 
@@ -97,7 +101,9 @@ sub run {
         last unless length $chunk;
 
         # Content
+        return unless STDOUT->opened;
         my $written = STDOUT->syswrite($chunk);
+        return unless defined $written;
         $offset += $written;
     }
 

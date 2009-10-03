@@ -309,12 +309,11 @@ sub _read {
     unless ($connection->{pipeline}) {
 
         # New pipeline
-        my $p = $connection->{pipeline}
-          ||= Mojo::Transaction::Pipeline->new->server_accept(
-            $self->build_tx_cb->($self));
+        my $p = $connection->{pipeline} = Mojo::Transaction::Pipeline->new;
         $p->connection($socket);
         $connection->{requests}++;
         $p->kept_alive(1) if $connection->{requests} > 1;
+        $p->server_accept($self->build_tx_cb->($self));
 
         # Last keep alive request?
         $p->server_tx->res->headers->connection('Close')

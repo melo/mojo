@@ -15,7 +15,7 @@ sub add_chunk {
     my ($self, $chunk) = @_;
 
     # Shortcut
-    return $self unless $chunk;
+    return $self unless defined $chunk;
 
     # Raw length
     $self->raw_size($self->raw_size + length $chunk);

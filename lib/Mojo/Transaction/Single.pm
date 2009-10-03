@@ -463,16 +463,8 @@ sub server_written {
     $self->_to_write($self->_to_write - $written);
     $self->_offset($self->_offset + $written);
 
-    # Chunked
-    $self->_to_write(1)
-      if $self->res->is_chunked && $self->is_state('write_body');
-
-    # Done early
-    if ($self->is_state('write_body') && $self->_to_write <= 0) {
-        $self->req->is_state('done_with_leftovers')
-          ? $self->state('done_with_leftovers')
-          : $self->state('done');
-    }
+    # See where we are now
+    $self->server_spin;
 
     return $self;
 }
